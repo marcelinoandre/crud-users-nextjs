@@ -5,6 +5,7 @@ import { UserRole } from './user-roles.enum'
 import * as bcrypt from 'bcrypt'
 import * as crypto from 'crypto'
 import { ConflictException, InternalServerErrorException } from '@nestjs/common'
+import { CredentialsDto } from 'src/auth/dtos/credentials.dto'
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -35,6 +36,17 @@ export class UserRepository extends Repository<User> {
           'Erro ao salvar o usuário no banco de dados'
         )
       }
+    }
+  }
+
+  async checkCredentials(credentialsDto: CredentialsDto): Promise<User> {
+    const { email, password } = credentialsDto
+    const user = await this.findOne({ email, status: true })
+
+    if (user && (await user.checkPassword(password))) {
+      return user
+    } else {
+      return null
     }
   }
 
